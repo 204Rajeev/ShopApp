@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_complete_guide/widgets/trailing_widget_cart_item.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/cart.dart';
+import '../providers/product.dart';
 
 class CartItem extends StatelessWidget {
   final String id;
@@ -21,8 +21,9 @@ class CartItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final kart = Provider.of<Cart>(context);
     return Dismissible(
-      key: ValueKey(id),
+      key: ValueKey(productId),
       background: Container(
         color: Theme.of(context).errorColor,
         child: Icon(
@@ -38,6 +39,27 @@ class CartItem extends StatelessWidget {
         ),
       ),
       direction: DismissDirection.endToStart,
+      confirmDismiss: (directon) {
+        return showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+                  title: Text('Are you sure?'),
+                  content:
+                      Text('Do you want to remove the item from the cart?'),
+                  actions: [
+                    FlatButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop(false);
+                        },
+                        child: Text('No')),
+                    FlatButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop(true);
+                        },
+                        child: Text('Yes'))
+                  ],
+                ));
+      },
       onDismissed: (direction) {
         Provider.of<Cart>(context, listen: false).removeItem(productId);
       },
@@ -69,8 +91,32 @@ class CartItem extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TrailingWidgetCartItem(
-                        quantity: quantity, productId: productId),
+                    Row(
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              kart.increment(productId);
+                            },
+                            icon: Icon(
+                              Icons.add,
+                              color: Theme.of(context).primaryColor,
+                              size: 20,
+                            )),
+                        Text(
+                          'x$quantity',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        IconButton(
+                            onPressed: () {
+                              kart.removeSingleItem(productId);
+                            },
+                            icon: Icon(
+                              Icons.remove,
+                              color: Theme.of(context).primaryColor,
+                              size: 20,
+                            )),
+                      ],
+                    )
                   ],
                 ),
               ],
